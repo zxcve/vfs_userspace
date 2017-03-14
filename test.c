@@ -36,8 +36,9 @@ static void thread_handler(int level)
 		pthread_join(thread[0], NULL);
 		pthread_join(thread[1], NULL);
 	}
-	pause();
-	exit(EXIT_SUCCESS);
+	while (1) {
+		pause();
+	}
 }
 
 static void *process_handler(void *arg)
@@ -54,7 +55,10 @@ static void *process_handler(void *arg)
 	}
 	for (i = 0; i < 2; i++)
 		wait(NULL);
-	exit(EXIT_SUCCESS);
+
+	while (1) {
+		pause();
+	}
 }
 
 static void sig_handler(int s)
