@@ -5,56 +5,87 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/syscall.h>
+#include <sys/wait.h>
 
-void *print_message_function( void *ptr );
+int max_level = 0;
 
-void signal123(int s)
+char *signal_array[] = {"SIGHUP","SIGINT","SIGQUIT","SIGILL","SIGTRAP","SIGIOT",
+	"SIGBUS","SIGFPE","SIGKILL","SIGUSR1","SIGSEGV","SIGUSR2","SIGPIPE","SIGALRM",
+	"SIGTERM","SIGSTKFLT","SIGCHLD","SIGCONT","SIGSTOP","SIGTSTP","SIGTTIN",
+	"SIGTTOU","SIGURG","SIGXCPU","SIGXFSZ","SIGVTALRM","SIGPROF","SIGWINCH",
+	"SIGIO","SIGPWR"};
+
+static void * process_handler(void *arg);
+
+static void thread_handler(int level)
 {
-	printf("Got signal %d for tid %ld pid %d\n", s, syscall( __NR_gettid), getpid());
+	pthread_t thread[2];
+	int i, ret;
+	int nlevel = level;
+
+	if (nlevel < max_level) {
+
+		for (i = 0; i < 2; i++) {
+			ret = pthread_create(&thread[i], NULL,
+					     process_handler, &nlevel);
+			if(ret) {
+				printf("Error - pthread_create() return code: %d\n",ret);
+				exit(EXIT_FAILURE);
+			}
+		}
+		pthread_join(thread[0], NULL);
+		pthread_join(thread[1], NULL);
+	}
+	pause();
+	exit(EXIT_SUCCESS);
 }
 
-void main()
+static void *process_handler(void *arg)
 {
-     pthread_t thread1, thread2;
-     const char *message1 = "Thread 1";
-     const char *message2 = "Thread 2";
-     int  iret1, iret2;
+	int i;
+	int pid[2];
+	int level = (*(int *)arg) + 1;
 
-     signal(SIGUSR1, signal123);
-    /* Create independent threads each of which will execute function */
-
-     iret1 = pthread_create( &thread1, NULL, print_message_function, (void*) message1);
-     if(iret1)
-     {
-         fprintf(stderr,"Error - pthread_create() return code: %d\n",iret1);
-         exit(EXIT_FAILURE);
-     }
-
-     iret2 = pthread_create( &thread2, NULL, print_message_function, (void*) message2);
-     if(iret2)
-     {
-         fprintf(stderr,"Error - pthread_create() return code: %d\n",iret2);
-         exit(EXIT_FAILURE);
-     }
-
-     printf("pthread_create() for thread 1 returns: %d\n",iret1);
-     printf("pthread_create() for thread 2 returns: %d\n",iret2);
-
-     /* Wait till threads are complete before main continues. Unless we  */
-     /* wait we run the risk of executing an exit which will terminate   */
-     /* the process and all threads before the threads have completed.   */
-
-     pthread_join( thread1, NULL);
-     pthread_join( thread2, NULL); 
-
-     exit(EXIT_SUCCESS);
+	for (i = 0; i < 2; i++) {
+		pid[i] = fork();
+		if (pid[i] == 0) {
+			thread_handler(level);
+		}
+	}
+	for (i = 0; i < 2; i++)
+		wait(NULL);
+	exit(EXIT_SUCCESS);
 }
 
-void *print_message_function( void *ptr )
+static void sig_handler(int s)
 {
-     char *message;
-     message = (char *) ptr;
-     printf("%s \n", message);
-    pause();
+	printf("Signal %s for tid %ld pid %d\n",
+	       signal_array[s-1], syscall( __NR_gettid), getpid());
 }
+
+void main(int argc, const char *argv[])
+{
+	int i;
+
+	if (argc < 2) {
+		printf("./test <levels>\n");
+		printf("Max allowed level is 5\n");
+		exit(EXIT_FAILURE);
+	}
+
+	max_level = atoi(argv[1]);
+
+	if (max_level > 5) {
+		printf("max level allowed is 5\n");
+		exit(EXIT_FAILURE);
+	}
+
+	printf("%d",getpid());
+
+	for (i = 1; i <= 30; i++)
+		signal(i, sig_handler);
+
+	thread_handler(0);
+}
+
 
