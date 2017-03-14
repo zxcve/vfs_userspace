@@ -25,4 +25,5 @@ fi
 ./test $1 &
 pid=$!
 sleep 1
-pstree -pg $pid
+echo "Format: <process>(pid) {<thread>}(pid)"
+pstree -p $pid
