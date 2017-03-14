@@ -59,7 +59,7 @@ static void *process_handler(void *arg)
 
 static void sig_handler(int s)
 {
-	printf("Signal %s for tid %ld pid %d\n",
+	printf("\nSignal %s for tid %ld pid %d\n",
 	       signal_array[s-1], syscall( __NR_gettid), getpid());
 }
 
@@ -69,7 +69,7 @@ void main(int argc, const char *argv[])
 
 	if (argc < 2) {
 		printf("./test <levels>\n");
-		printf("Max allowed level is 5\n");
+		printf("Max allowed level is 5 as tree is exponential\n");
 		exit(EXIT_FAILURE);
 	}
 
