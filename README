@@ -1,0 +1,87 @@
+User-Space Testing
+###############################################################################
+Execute "./test.sh <levels>" to run the benchmark
+The <levels> can vary from 1-5.
+
+Each process creates 2 threads and each thread creates 2 processes.
+This is done recursively till the height of the heirarchy tree is <levels>.
+
+Example:
+
+-------Snippet -----------
+root@debian:/home/user# ./test.sh 1                                                                                   
+Format: <process>(pid) {<thread>}(pid)
+test(5023)─┬─test(5027)
+           ├─test(5028)
+           ├─test(5029)
+           ├─test(5030)
+           ├─{test}(5025)
+           └─{test}(5026)
+------- XXXXX -----------
+The above print is from pstree. Although it may seem confusing for threads, but the parent of all threads is still same.
+################################################################################
+
+Kernel-Space Testing
+################################################################################
+Command To mount:
+	1) mount -t project4 <mount_point>
+	2) tree <mount_point>
+The above command will take the current snapshot for the process hierarchy and create vfs
+
+Example:
+-------Snippet of tree output -----------
+
+	├── 5023
+	│   ├── 5023.status
+	│   └── signal
+	├── 5025
+	│   ├── 5025.status
+	│   ├── 5027
+	│   │   ├── 5027.status
+	│   │   └── signal
+	│   ├── 5028
+	│   │   ├── 5028.status
+	│   │   └── signal
+	│   └── signal
+	├── 5026
+	│   ├── 5026.status
+	│   ├── 5029
+	│   │   ├── 5029.status
+	│   │   └── signal
+	│   ├── 5030
+	│   │   ├── 5030.status
+	│   │   └── signal
+	│   └── signal
+	└── signal
+
+------- XXXXX -----------
+
+Comand to Send Signal
+	1) echo "10" > <signal_file>
+
+Example:
+	echo "10" 4987/signal
+
+-------Kernel Dmesg Log ------------
+	[ 6329.736812] Signal 10 delivered for PID 5023 TID 5026
+------- XXXXX -----------
+
+-------User space Log ------------
+	SIGUSR1-> TID<5026> PID<5023>
+------- XXXXX -----------
+
+Command to Print Status
+	1) cat <status_file>
+
+Example:
+	cat 1.status
+
+-------User space Log ------------
+	State: TASK_STOPPED
+	Type: USER_THREAD
+	Cpu: 2
+	Monotonic Start time 23000000NS
+	Name: systemd
+	Stack: 0xffff88007d3f8000
+------- XXXXX -----------
+
