@@ -19,6 +19,10 @@ test(5023)─┬─test(5027)
            └─{test}(5026)
 ------- XXXXX -----------
 The above print is from pstree. Although it may seem confusing for threads, but the parent of all threads is still same.
+Also signals for kernel thread only works if allow_signal(<signal_number>) is present in the thread code. By default most of the
+kernel threads ignore the signals. 
+
+Also my tree hierarchy uses "pid" of kernel space which is "tid" in user space.
 ################################################################################
 
 Kernel-Space Testing
@@ -63,25 +67,60 @@ Example:
 	echo "10" 4987/signal
 
 -------Kernel Dmesg Log ------------
-	[ 6329.736812] Signal 10 delivered for PID 5023 TID 5026
+	[ 6329.736812] Signal SIGUSR1<10> delivered PID<5023> TID<5026>
 ------- XXXXX -----------
 
 -------User space Log ------------
 	SIGUSR1-> TID<5026> PID<5023>
 ------- XXXXX -----------
 
+The above pid and tid are from user-space. This pid and tid maps to tgid and pid of kernel space respectively.
+
 Command to Print Status
 	1) cat <status_file>
 
 Example:
+For a user process
 	cat 1.status
+########## Status ###########
+Virtual_Memory_Size:    28556 kB
+Virtual_Memory_Peak:    29432 kB
+Text_VM:        4640 kB
+Lib_VM: 11088 kB
+Data_VM:        1744 kB
+Stack_VM:       136 kB
+State:  S (sleeping)
+Type:   USER_PROCESS
+Cpu     3
+Monotonic_Start_Time    24000000ns
+Name:   systemd
+Stack_Pointer:  0xffff88007d3f8000
+#############################
 
--------User space Log ------------
-	State: TASK_STOPPED
-	Type: USER_THREAD
-	Cpu: 2
-	Monotonic Start time 23000000NS
-	Name: systemd
-	Stack: 0xffff88007d3f8000
-------- XXXXX -----------
+For a kernel thread
+	cat 2.status
+########## Status ###########
+State:  S (sleeping)
+Type:   KERNEL_THREAD
+Cpu     0
+Monotonic_Start_Time    24000000ns
+Name:   kthreadd
+Stack_Pointer:  0xffff88007c810000
+#############################
 
+For a user thread
+	cat 2140.status
+########## Status ###########
+Virtual_Memory_Size:    22768 kB
+Virtual_Memory_Peak:    22768 kB
+Text_VM:        16 kB
+Lib_VM: 7568 kB
+Data_VM:        16596 kB
+Stack_VM:       136 kB
+State:  S (sleeping)
+Type:   USER_THREAD
+Cpu     3
+Monotonic_Start_Time    1099133445690ns
+Name:   test
+Stack_Pointer:  0xffff88007b730000
+#############################
