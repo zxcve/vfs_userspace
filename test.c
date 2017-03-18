@@ -69,7 +69,7 @@ static void thread_handler(int level)
 static void *process_handler(void *arg)
 {
 	/* Only two process per parent */
-	int pid[2];
+	pid_t pid[2];
 	int i;
 	int level = (*(int *)arg) + 1;
 
