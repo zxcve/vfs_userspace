@@ -1,5 +1,7 @@
 User-Space Testing
 ###############################################################################
+Build Using "make". If you are building on different host, then "make install" to scp it to VM.
+
 Execute "./test.sh <levels>" to run the benchmark
 The <levels> can vary from 1-5.
 
@@ -27,8 +29,10 @@ Also my tree hierarchy uses "pid" of kernel space which is "tid" in user space.
 
 Kernel-Space Testing
 ################################################################################
+Build Using "make". If you are building on different host, then "make install" to scp it to VM.
+
 Command To mount:
-	1) mount -t project4 <mount_point>
+	1) mount -t project4 none <mount_point>
 	2) tree <mount_point>
 The above command will take the current snapshot for the process hierarchy and create vfs
 
