@@ -135,6 +135,7 @@ void main(int argc, const char *argv[])
 		if (sigaction(i, &sa, NULL) == -1) {
 			printf("Signal handler setting failed for %s signal\n",
 			       signal_array[i-1]);
+			exit(EXIT_FAILURE);
 		}
 	}
 
