@@ -35,6 +35,7 @@ pid=$!
 #sleep for 1second to populate process hierarchy
 sleep 1
 
+echo "test is the process/threads created"
 echo "Format: <process>(pid) {<thread>}(pid)"
 #print the structure of the process tree
 pstree -p $pid

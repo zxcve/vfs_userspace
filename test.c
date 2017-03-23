@@ -109,6 +109,7 @@ static void sig_handler(int s)
 void main(int argc, const char *argv[])
 {
 	int i;
+	struct sigaction sa;
 
 	/* Argument checking */
 	if (argc < 2) {
@@ -126,8 +127,16 @@ void main(int argc, const char *argv[])
 	}
 
 	/* Installs all the signal handlers */
-	for (i = 1; i <= 30; i++)
-		signal(i, sig_handler);
+	for (i = 1; i <= 30; i++) {
+		if (i == 9 || i == 19)
+			continue;
+		sa.sa_handler = sig_handler;
+		sigemptyset(&sa.sa_mask);
+		if (sigaction(i, &sa, NULL) == -1) {
+			printf("Signal handler setting failed for %s signal\n",
+			       signal_array[i-1]);
+		}
+	}
 
 	/* Initiate recurse process creation */
 	thread_handler(0);
